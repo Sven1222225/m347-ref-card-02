@@ -18,6 +18,10 @@ jobs:
     # GitHub stellt dafür eine frische Ubuntu-VM bereit
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read
+      packages: write
+
     # Jeder Job besteht aus einer Reihe von Schritten (steps)
     steps:
 
@@ -37,7 +41,7 @@ jobs:
 
       # 4. Bei Docker Hub einloggen, um das Image pushen zu können
       # Login erfolgt mit den geheimen Zugangsdaten aus den GitHub Secrets
-      - name: Log in to Docker Hub
+      - name: [Docker] Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           registry: docker.io                        # Ziel-Registry
@@ -45,7 +49,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}    # Docker-Hub-Token oder Passwort (Secret)
 
       # 5. Docker-Image bauen und auf Docker Hub hochladen
-      - name: Build and push Docker image
+      - name: [Docker] Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           # Pfad zum Build-Kontext (hier das Repo selbst)
@@ -66,3 +70,34 @@ jobs:
           tags: |
             docker.io/${{ secrets.DOCKERHUB_USERNAME }}/myproject2:latest
             docker.io/${{ secrets.DOCKERHUB_USERNAME }}/myproject2:${{ github.sha }}
+        
+        #
+      - name: [GHCR] Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: [GHCR] Docker meta (tags & labels for GHCR)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}  # auto-lowercased
+          tags: |
+            type=ref,event=branch
+            type=sha
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: [GHCR] Build & Push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          # provenance: false  # uncomment only if you want to disable attestations
