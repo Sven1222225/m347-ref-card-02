@@ -64,5 +64,5 @@ jobs:
           # a) "latest" – für die jeweils aktuelle Version
           # b) Commit-Hash – eindeutiger Fingerabdruck jeder Build-Version
           tags: |
-            docker.io/${{ secrets.DOCKERHUB_USERNAME }}/myproject:latest
-            docker.io/${{ secrets.DOCKERHUB_USERNAME }}/myproject:${{ github.sha }}
+            docker.io/${{ secrets.DOCKERHUB_USERNAME }}/myproject2:latest
+            docker.io/${{ secrets.DOCKERHUB_USERNAME }}/myproject2:${{ github.sha }}
