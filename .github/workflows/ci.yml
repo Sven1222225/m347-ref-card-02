@@ -5,7 +5,7 @@ name: Build and Push Docker Image to Docker Hub
 on:
   # Der Workflow startet automatisch bei einem Push auf den Branch "main"
   push:
-    branches: ( main )
+    branches: [ main ]
 
   # Zusätzlich kann der Workflow manuell über den "Run workflow"-Button gestartet werden
   workflow_dispatch:
